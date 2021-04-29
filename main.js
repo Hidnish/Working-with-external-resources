@@ -1,7 +1,7 @@
 function getData(url, cb) {
     var xhr = new XMLHttpRequest();
 
-    xhr.open("GET", url);                       /* the "url" parameter ends up here */
+    xhr.open("GET", url);                       // the "url" parameter ends up here 
     xhr.send();
 
     xhr.onreadystatechange = function () {
@@ -21,7 +21,7 @@ function getTableHeaders(obj) {
     return `<tr>${tableHeaders}</tr>`; // all the table cells (<td></td>) from above are put in line to form the tableHeaders
 }
 
-function generatePaginationButtons(next, prev) {
+function generatePaginationButtons(next, prev) {  // since data.next or previous are urls, this triggers writeToDocument the prev or next page of data for the same type 
     if (next && prev) {
         return `<button onclick = "writeToDocument('${prev}')">Previous</button>
                 <button onclick = "writeToDocument('${next}')">Next</button>`;
@@ -44,14 +44,14 @@ function writeToDocument(url) {
             pagination = generatePaginationButtons(data.next, data.previous);
         };
 
-        data = data.results;  /* results --> name of the array we want to target from this.responseText (aka cb aka data) */
-        let tableHeaders = getTableHeaders(data[0]); /* data[0] is the first object contained within the "result" object --> luke skywalker, of which we extract only the keys with the function getTableHeaders*/
+        data = data.results;  // results --> name of the array we want to target from this.responseText (aka cb aka data) 
+        let tableHeaders = getTableHeaders(data[0]); // data[0] is the first object contained within the "result" object --> luke skywalker, of which we extract only the keys with the function getTableHeaders
                                
-        data.forEach(function(item) {  // the parameter can be called whatever you want 
+        data.forEach(function(item) {  // item: single object within the data.results array 
             var dataRow = [];
 
-            Object.keys(item).forEach(function(key) {
-                var rowData = item[key].toString();
+            Object.values(item).forEach(function(value) {  // this is the equiv of Object.keys(item).forEach(function(key) {var rowData = item[key].toString();}
+                var rowData = value.toString();
                 var truncatedData = rowData.substring(0, 15);
                 dataRow.push(`<td>${truncatedData}</td>`);
             });
@@ -59,6 +59,6 @@ function writeToDocument(url) {
             tableRows.push(`<tr>${dataRow}</tr>`);
         });
 
-        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>${pagination}`;
+        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>${pagination}`.replace(/,/g, '');
     });
 }   
