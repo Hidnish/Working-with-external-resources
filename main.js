@@ -1,9 +1,7 @@
-const baseURL = "https://ci-swapi.herokuapp.com/api/";
-
-function getData(type, cb) {
+function getData(url, cb) {
     var xhr = new XMLHttpRequest();
 
-    xhr.open("GET", baseURL + type + "/");                      /* the "type" parameter ends up here */
+    xhr.open("GET", url);                       /* the "url" parameter ends up here */
     xhr.send();
 
     xhr.onreadystatechange = function () {
@@ -13,14 +11,54 @@ function getData(type, cb) {
     };
 }
 
-function writeToDocument(type) {
+function getTableHeaders(obj) {
+    var tableHeaders = [];
+
+    Object.keys(obj).forEach(function(key) {
+        tableHeaders.push(`<td>${key}</td>`); // Extracts keys from obj, which is "data[0]" below (luke skywalker aka first object in the array "results")
+    })
+
+    return `<tr>${tableHeaders}</tr>`; // all the table cells (<td></td>) from above are put in line to form the tableHeaders
+}
+
+function generatePaginationButtons(next, prev) {
+    if (next && prev) {
+        return `<button onclick = "writeToDocument('${prev}')">Previous</button>
+                <button onclick = "writeToDocument('${next}')">Next</button>`;
+    } else if (next && !prev) {
+        return `<button onclick = "writeToDocument('${next}')">Next</button>`;
+    } else if (!next && prev) {
+        return `<button onclick = "writeToDocument('${prev}')">Previous</button>`;
+    }
+};
+
+function writeToDocument(url) {
+    var tableRows = [];
     var el = document.getElementById('data');
     el.innerHTML = '';
-    getData(type, function(data) {
-        data = data.results;                                   /* results --> name of the array */
 
-        data.forEach(function(item) {
-            document.getElementById("data").innerHTML += "<p>" + item.name + "</p>";
-        })
+    getData(url, function(data) {  // cb --> data (which is JSONparse textResponde from above: is the argument for the parameter "data")
+
+        var pagination;
+        if (data.next || data.previous) {
+            pagination = generatePaginationButtons(data.next, data.previous);
+        };
+
+        data = data.results;  /* results --> name of the array we want to target from this.responseText (aka cb aka data) */
+        let tableHeaders = getTableHeaders(data[0]); /* data[0] is the first object contained within the "result" object --> luke skywalker, of which we extract only the keys with the function getTableHeaders*/
+                               
+        data.forEach(function(item) {  // the parameter can be called whatever you want 
+            var dataRow = [];
+
+            Object.keys(item).forEach(function(key) {
+                var rowData = item[key].toString();
+                var truncatedData = rowData.substring(0, 15);
+                dataRow.push(`<td>${truncatedData}</td>`);
+            });
+
+            tableRows.push(`<tr>${dataRow}</tr>`);
+        });
+
+        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>${pagination}`;
     });
 }   
